@@ -1,5 +1,10 @@
 # API de Solicitudes de Soporte Técnico
 
+[![CI](https://github.com/oropezadev-wq/soporte-tecnico-api/actions/workflows/ci.yml/badge.svg)](https://github.com/oropezadev-wq/soporte-tecnico-api/actions/workflows/ci.yml)
+![Java 21](https://img.shields.io/badge/Java-21-orange)
+![Spring Boot 4.1](https://img.shields.io/badge/Spring%20Boot-4.1-6db33f)
+[![Licencia MIT](https://img.shields.io/badge/licencia-MIT-blue)](LICENSE)
+
 API RESTful en Java y Spring Boot para que una empresa de servicios tecnológicos registre, consulte, actualice y elimine las solicitudes de soporte técnico de sus clientes, y asigne técnicos para atenderlas.
 
 Proyecto de la evaluación parcial del curso **Desarrollo de los Componentes del Negocio** (IDAT).
@@ -59,7 +64,7 @@ docs/img/          capturas
 Requisito: **JDK 21**. Maven no hace falta: el proyecto trae `mvnw`.
 
 ```bash
-git clone <url-del-repositorio>
+git clone https://github.com/oropezadev-wq/soporte-tecnico-api.git
 cd soporte-tecnico-api
 
 # Windows
