@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -65,6 +67,20 @@ public class GlobalExceptionHandler {
                                                            HttpServletRequest req) {
         return responder(HttpStatus.METHOD_NOT_ALLOWED,
                 "El método " + ex.getMethod() + " no está permitido en esta ruta", req, Map.of());
+    }
+
+    /** El cuerpo no viene como application/json (por ejemplo, text/plain o sin Content-Type). */
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> formatoNoSoportado(HttpMediaTypeNotSupportedException ex,
+                                                            HttpServletRequest req) {
+        return responder(HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                "El cuerpo de la petición debe enviarse como application/json", req, Map.of());
+    }
+
+    /** El cliente solo acepta un formato que la API no produce (por ejemplo, XML); no se puede enviar cuerpo. */
+    @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
+    public ResponseEntity<Void> formatoNoAceptable() {
+        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
     }
 
     @ExceptionHandler(NoResourceFoundException.class)

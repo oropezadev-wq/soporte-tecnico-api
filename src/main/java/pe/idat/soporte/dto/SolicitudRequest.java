@@ -31,4 +31,9 @@ public record SolicitudRequest(
         @Positive(message = "El id del cliente debe ser positivo")
         Long clienteId
 ) {
+    /** Recorta los espacios antes de validar, para que "  ab  " no pase el mínimo de 5 caracteres. */
+    public SolicitudRequest {
+        titulo = titulo == null ? null : titulo.strip();
+        descripcion = descripcion == null ? null : descripcion.strip();
+    }
 }

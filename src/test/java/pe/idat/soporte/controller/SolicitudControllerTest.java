@@ -154,6 +154,55 @@ class SolicitudControllerTest {
     }
 
     @Test
+    void tecnicoConHistorialNoSeElimina() throws Exception {
+        long tecnicoId = crearTecnico("tecnico.historial@x.pe");
+        long id = crear("/api/v1/solicitudes", solicitud(crearCliente("historial@x.pe")));
+        mvc.perform(patch("/api/v1/solicitudes/{id}/tecnico", id).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"tecnicoId\":%d}".formatted(tecnicoId))).andExpect(status().isOk());
+        for (String estado : new String[]{"RESUELTA", "CERRADA"}) {
+            mvc.perform(patch("/api/v1/solicitudes/{id}/estado", id).contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"estado\":\"%s\"}".formatted(estado))).andExpect(status().isOk());
+        }
+
+        mvc.perform(delete("/api/v1/tecnicos/{id}", tecnicoId))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.mensaje").value(containsString("activo=false")));
+        mvc.perform(get("/api/v1/solicitudes/{id}", id))
+                .andExpect(jsonPath("$.tecnicoNombre").value("Técnico de prueba"));
+    }
+
+    @Test
+    void tecnicoSinSolicitudesSeElimina() throws Exception {
+        long tecnicoId = crearTecnico("tecnico.libre@x.pe");
+
+        mvc.perform(delete("/api/v1/tecnicos/{id}", tecnicoId)).andExpect(status().isNoContent());
+        mvc.perform(get("/api/v1/tecnicos/{id}", tecnicoId)).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void tituloConEspaciosNoPasaElMinimo() throws Exception {
+        long clienteId = crearCliente("espacios@x.pe");
+
+        mvc.perform(post("/api/v1/solicitudes").contentType(MediaType.APPLICATION_JSON)
+                        .content(solicitud(clienteId).replace("No hay internet", "   ab   ")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errores.titulo").exists());
+    }
+
+    @Test
+    void cuerpoQueNoEsJsonDevuelve415() throws Exception {
+        mvc.perform(post("/api/v1/clientes").contentType(MediaType.TEXT_PLAIN).content("hola"))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(jsonPath("$.estado").value(415));
+    }
+
+    @Test
+    void aceptarSoloXmlDevuelve406() throws Exception {
+        mvc.perform(get("/api/v1/solicitudes").accept(MediaType.APPLICATION_XML))
+                .andExpect(status().isNotAcceptable());
+    }
+
+    @Test
     void emailDuplicadoDevuelve409() throws Exception {
         crearCliente("duplicado@x.pe");
 

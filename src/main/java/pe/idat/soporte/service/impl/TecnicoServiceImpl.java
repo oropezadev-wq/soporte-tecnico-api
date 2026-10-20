@@ -57,8 +57,9 @@ public class TecnicoServiceImpl implements TecnicoService {
     @Override
     public void eliminar(Long id) {
         buscar(id);
-        if (solicitudes.existenAbiertasPorTecnico(id)) {
-            throw new ReglaNegocioException("El técnico " + id + " tiene solicitudes pendientes; reasígnelas antes de eliminarlo");
+        if (solicitudes.existenPorTecnico(id)) {
+            throw new ReglaNegocioException("El técnico " + id
+                    + " tiene solicitudes registradas y no se puede eliminar; desactívelo con activo=false");
         }
         tecnicos.eliminarPorId(id);
     }

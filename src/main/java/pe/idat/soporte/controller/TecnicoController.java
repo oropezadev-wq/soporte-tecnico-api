@@ -86,10 +86,10 @@ public class TecnicoController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Eliminar un técnico sin solicitudes pendientes")
+    @Operation(summary = "Eliminar un técnico sin solicitudes")
     @ApiResponse(responseCode = "204", description = "Técnico eliminado")
     @ApiResponse(responseCode = "404", description = "El técnico no existe")
-    @ApiResponse(responseCode = "409", description = "El técnico tiene solicitudes pendientes")
+    @ApiResponse(responseCode = "409", description = "El técnico tiene solicitudes registradas; se desactiva con activo=false")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         tecnicoService.eliminar(id);
         return ResponseEntity.noContent().build();

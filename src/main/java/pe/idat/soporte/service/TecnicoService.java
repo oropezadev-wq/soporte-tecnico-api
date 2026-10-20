@@ -18,6 +18,6 @@ public interface TecnicoService {
 
     TecnicoResponse actualizar(Long id, TecnicoRequest request);
 
-    /** No elimina técnicos con solicitudes pendientes de atender. */
+    /** No elimina técnicos con solicitudes registradas, para conservar el historial. */
     void eliminar(Long id);
 }

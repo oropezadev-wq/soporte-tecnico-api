@@ -28,7 +28,7 @@ public class SolicitudRepositorio extends RepositorioEnMemoria<Solicitud> {
         return !listarPorCliente(clienteId).isEmpty();
     }
 
-    public boolean existenAbiertasPorTecnico(Long tecnicoId) {
-        return listarPorTecnico(tecnicoId).stream().anyMatch(s -> !s.getEstado().esFinal());
+    public boolean existenPorTecnico(Long tecnicoId) {
+        return !listarPorTecnico(tecnicoId).isEmpty();
     }
 }

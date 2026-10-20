@@ -99,7 +99,7 @@ Base: `/api/v1`
 | GET | `/tecnicos/{id}` | Obtener un técnico | 200, 404 |
 | GET | `/tecnicos/{id}/solicitudes` | Solicitudes asignadas a un técnico | 200, 404 |
 | PUT | `/tecnicos/{id}` | Actualizar un técnico | 200, 400, 404, 409 |
-| DELETE | `/tecnicos/{id}` | Eliminar un técnico sin solicitudes pendientes | 204, 404, 409 |
+| DELETE | `/tecnicos/{id}` | Eliminar un técnico sin solicitudes | 204, 404, 409 |
 | POST | `/solicitudes` | Registrar una solicitud | 201, 400, 404 |
 | GET | `/solicitudes?estado=ABIERTA&prioridad=ALTA` | Listar solicitudes (filtros opcionales) | 200, 400 |
 | GET | `/solicitudes/{id}` | Obtener una solicitud | 200, 404 |
@@ -131,7 +131,8 @@ stateDiagram-v2
 - Solo se eliminan solicitudes ABIERTAS o CANCELADAS; las atendidas quedan como historial.
 - No se asignan técnicos inactivos.
 - El email de clientes y de técnicos es único (sin distinguir mayúsculas).
-- No se elimina un cliente con solicitudes ni un técnico con solicitudes pendientes.
+- No se elimina un cliente ni un técnico que tenga solicitudes, para no romper el historial; al técnico que deja de atender se le desactiva con `activo=false`.
+- El título y la descripción se recortan antes de validarse: `"  ab  "` no cumple el mínimo de 5 caracteres.
 
 ### Ejemplos
 
@@ -193,7 +194,9 @@ Todos los errores tienen la misma estructura. Cuando falla una validación, `err
 | 400 | Datos inválidos, JSON mal formado, valor de enum desconocido o id no numérico |
 | 404 | El recurso o la ruta no existe |
 | 405 | Método HTTP no permitido en la ruta |
+| 406 | El cliente solo acepta un formato distinto de JSON (por ejemplo, XML) |
 | 409 | La operación viola una regla del negocio |
+| 415 | El cuerpo no se envía como `application/json` |
 | 500 | Error no previsto (se registra en el log sin exponer detalles) |
 
 ## Pruebas
@@ -205,14 +208,14 @@ mvnw.cmd test        # Windows
 ./mvnw test          # Linux / macOS
 ```
 
-27 pruebas:
+32 pruebas:
 
 | Clase | Qué prueba |
 |---|---|
 | `SolicitudTest` | Ciclo de vida y transiciones de estado |
 | `RepositorioEnMemoriaTest` | Ids autoincrementales, que no se reutilicen, reemplazo y búsqueda por email |
 | `SolicitudServiceImplTest` | Reglas del servicio: cliente inexistente, técnico inactivo, filtros, eliminación y cambio de cliente |
-| `SolicitudControllerTest` | La API por HTTP con MockMvc: 201 con `Location`, 400 por campo, 404, 409, flujo completo y Swagger |
+| `SolicitudControllerTest` | La API por HTTP con MockMvc: 201 con `Location`, 400 por campo, 404, 406, 409, 415, título con espacios, borrado de técnicos, flujo completo y Swagger |
 
 ### Funcionales (Postman)
 
