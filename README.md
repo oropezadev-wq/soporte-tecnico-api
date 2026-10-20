@@ -15,7 +15,7 @@ Hoy las solicitudes llegan en papel o por correos desordenados: se pierde inform
 | Java (Eclipse Temurin) | 21 |
 | Spring Boot (Web MVC, Validation) | 4.1.1 |
 | springdoc-openapi (Swagger UI) | 3.1.1 |
-| Maven (incluido con `mvnw`) | 3.10 |
+| Maven (incluido con `mvnw`) | 3.9 |
 | Pruebas | JUnit 5, AssertJ, MockMvc, Postman/Newman |
 
 Los datos se guardan **en memoria** (`ConcurrentHashMap`), sin base de datos: se pierden al detener la aplicación.
