@@ -226,8 +226,8 @@ npx newman run postman/soporte-tecnico-api.postman_collection.json
 
 ## Equipo
 
-| Integrante | Rol |
+| Apellidos | Nombres |
 |---|---|
-| _Completar_ | _Completar_ |
-| _Completar_ | _Completar_ |
-| _Completar_ | _Completar_ |
+| Lopez Marmanillo | Abraham Sebastiam |
+| Oropeza Ávila | Wali |
+| Pascual Cárdenas | Rony Emerzon |
