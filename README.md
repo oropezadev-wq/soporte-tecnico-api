@@ -1,10 +1,5 @@
 # API de Solicitudes de Soporte Técnico
 
-[![CI](https://github.com/oropezadev-wq/soporte-tecnico-api/actions/workflows/ci.yml/badge.svg)](https://github.com/oropezadev-wq/soporte-tecnico-api/actions/workflows/ci.yml)
-![Java 21](https://img.shields.io/badge/Java-21-orange)
-![Spring Boot 4.1](https://img.shields.io/badge/Spring%20Boot-4.1-6db33f)
-[![Licencia MIT](https://img.shields.io/badge/licencia-MIT-blue)](LICENSE)
-
 API RESTful en Java y Spring Boot para que una empresa de servicios tecnológicos registre, consulte, actualice y elimine las solicitudes de soporte técnico de sus clientes, y asigne técnicos para atenderlas.
 
 Proyecto de la evaluación parcial del curso **Desarrollo de los Componentes del Negocio** (IDAT).
@@ -17,13 +12,13 @@ Hoy las solicitudes llegan en papel o por correos desordenados: se pierde inform
 
 | Componente | Versión |
 |---|---|
-| Java (Eclipse Temurin) | 21 |
-| Spring Boot (Web MVC, Validation) | 4.1.1 |
-| springdoc-openapi (Swagger UI) | 3.1.1 |
+| Java | 21 |
+| Spring Boot (Web, Validation) | 4.1.1 |
+| Swagger UI (springdoc-openapi) | 3.1.1 |
 | Maven (incluido con `mvnw`) | 3.9 |
-| Pruebas | JUnit 5, AssertJ, MockMvc, Postman/Newman |
+| Pruebas | Postman |
 
-Los datos se guardan **en memoria** (`ConcurrentHashMap`), sin base de datos: se pierden al detener la aplicación.
+Los datos se guardan **en memoria** (en un `Map`), sin base de datos: se pierden al detener la aplicación.
 
 ## Arquitectura
 
@@ -108,8 +103,6 @@ Base: `/api/v1`
 | PATCH | `/solicitudes/{id}/estado` | Cambiar el estado | 200, 400, 404, 409 |
 | DELETE | `/solicitudes/{id}` | Eliminar una solicitud ABIERTA o CANCELADA | 204, 404, 409 |
 
-Los `POST` devuelven la cabecera `Location` con la URL del recurso creado.
-
 ### Reglas del negocio
 
 ```mermaid
@@ -191,46 +184,19 @@ Todos los errores tienen la misma estructura. Cuando falla una validación, `err
 
 | Código | Cuándo |
 |---|---|
-| 400 | Datos inválidos, JSON mal formado, valor de enum desconocido o id no numérico |
-| 404 | El recurso o la ruta no existe |
-| 405 | Método HTTP no permitido en la ruta |
-| 406 | El cliente solo acepta un formato distinto de JSON (por ejemplo, XML) |
-| 409 | La operación viola una regla del negocio |
-| 415 | El cuerpo no se envía como `application/json` |
-| 500 | Error no previsto (se registra en el log sin exponer detalles) |
+| 400 | Datos inválidos o JSON mal formado |
+| 404 | El recurso no existe |
+| 409 | La operación rompe una regla del negocio |
+| 500 | Error no previsto |
 
-## Pruebas
+## Pruebas con Postman
 
-### Automatizadas (JUnit)
-
-```bash
-mvnw.cmd test        # Windows
-./mvnw test          # Linux / macOS
-```
-
-32 pruebas:
-
-| Clase | Qué prueba |
-|---|---|
-| `SolicitudTest` | Ciclo de vida y transiciones de estado |
-| `RepositorioEnMemoriaTest` | Ids autoincrementales, que no se reutilicen, reemplazo y búsqueda por email |
-| `SolicitudServiceImplTest` | Reglas del servicio: cliente inexistente, técnico inactivo, filtros, eliminación y cambio de cliente |
-| `SolicitudControllerTest` | La API por HTTP con MockMvc: 201 con `Location`, 400 por campo, 404, 406, 409, 415, título con espacios, borrado de técnicos, flujo completo y Swagger |
-
-### Funcionales (Postman)
-
-Importar `postman/soporte-tecnico-api.postman_collection.json` en Postman y ejecutarla con el **Runner** con la API levantada. Son 28 peticiones con 48 verificaciones automáticas, en orden: cada petición guarda los ids que usan las siguientes, y los emails llevan un sufijo para poder repetirla sin reiniciar la API.
-
-Desde la terminal, con Node.js instalado:
-
-```bash
-npx newman run postman/soporte-tecnico-api.postman_collection.json
-```
+Importar `postman/soporte-tecnico-api.postman_collection.json` en Postman y ejecutarla con el **Runner** con la API levantada. Son 28 peticiones con 48 tests, en orden: cada petición guarda los ids que usan las siguientes.
 
 ## Equipo
 
-| Apellidos | Nombres |
-|---|---|
-| Lopez Marmanillo | Abraham Sebastiam |
-| Oropeza Ávila | Wali |
-| Pascual Cárdenas | Rony Emerzon |
+| Apellidos | Nombres | Rol |
+|---|---|---|
+| Lopez Marmanillo | Abraham Sebastiam | Capa de presentación: controladores REST, validaciones de entrada y Swagger |
+| Oropeza Ávila | Wali | Líder del proyecto y capa de negocio: servicios, reglas y manejo de excepciones |
+| Pascual Cárdenas | Rony Emerzon | Capa de datos: modelo, repositorios en memoria y pruebas con Postman |
