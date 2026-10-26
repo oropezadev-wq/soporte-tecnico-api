@@ -56,24 +56,20 @@ docs/img/          capturas
 
 ## Cómo ejecutarlo
 
-Requisito: **JDK 21**. Maven no hace falta: el proyecto trae `mvnw`.
+Requisitos: **JDK 21** e **IntelliJ IDEA**. Maven no hace falta instalarlo: viene incluido en el proyecto.
 
-```bash
-git clone https://github.com/oropezadev-wq/soporte-tecnico-api.git
-cd soporte-tecnico-api
-
-# Windows
-mvnw.cmd spring-boot:run
-# Linux / macOS
-./mvnw spring-boot:run
-```
+1. Descargar el repositorio:
+   ```bash
+   git clone https://github.com/oropezadev-wq/soporte-tecnico-api.git
+   ```
+   o en GitHub: *Code → Download ZIP*.
+2. Abrir la carpeta en IntelliJ IDEA (*File → Open*) y esperar a que termine de cargar las dependencias.
+3. Ejecutar la clase `SoporteTecnicoApiApplication` (botón *Run*).
 
 La API queda en `http://localhost:8080` con datos de ejemplo cargados (2 clientes, 2 técnicos y 3 solicitudes).
 
+- API: <http://localhost:8080/api/v1>
 - Swagger UI: <http://localhost:8080/swagger-ui.html>
-- Especificación OpenAPI: <http://localhost:8080/v3/api-docs>
-
-En IntelliJ IDEA: *File → Open* sobre la carpeta, esperar a que Maven descargue las dependencias y ejecutar `SoporteTecnicoApiApplication`.
 
 ![Swagger UI](docs/img/swagger-ui.png)
 
