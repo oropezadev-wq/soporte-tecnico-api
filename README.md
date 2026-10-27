@@ -32,23 +32,16 @@ flowchart LR
     CT -. excepciones .-> EX[exception<br/>GlobalExceptionHandler]
 ```
 
-- **controller**: recibe la petición, valida el cuerpo con `@Valid` y devuelve el código HTTP adecuado. No contiene lógica de negocio.
-- **dto**: `record` de entrada (`*Request`, con las validaciones) y de salida (`*Response`). Las entidades nunca salen de la capa de servicio.
-- **service**: una interfaz por recurso y su implementación en `service/impl`. Aquí viven las reglas del negocio.
-- **repository**: la interfaz `Repositorio<T>` define la persistencia. `RepositorioEnMemoria<T>` la implementa con un `Map` e ids autoincrementales, y cada repositorio concreto añade sus consultas (por email, por estado, etc.). Para usar una base de datos real se cambia solo esta capa.
-- **model**: entidades con atributos privados. `Persona` es abstracta y la heredan `Cliente` y `Tecnico`. `Solicitud` controla su propio ciclo de vida.
-- **exception**: `@RestControllerAdvice` que convierte cada excepción en una respuesta con el mismo formato.
-
 ```
 src/main/java/pe/idat/soporte
-├── config/        OpenApiConfig (Swagger) y DatosIniciales (datos de ejemplo)
-├── controller/    ClienteController, TecnicoController, SolicitudController
-├── dto/           *Request, *Response, ErrorResponse
-├── exception/     GlobalExceptionHandler y excepciones del negocio
-├── mapper/        SoporteMapper (entidad ↔ DTO)
+├── config/        Swagger y datos de ejemplo
+├── controller/    recibe las peticiones y valida con @Valid
+├── dto/           datos de entrada y salida (records)
+├── exception/     manejo de errores con un formato único
+├── mapper/        convierte entidades a DTO
 ├── model/         Persona, Cliente, Tecnico, Solicitud y enums
-├── repository/    Repositorio, RepositorioEnMemoria y repositorios concretos
-└── service/       interfaces y service/impl
+├── repository/    guarda los datos en un Map
+└── service/       reglas del negocio (interfaces y service/impl)
 src/test/java/...  pruebas de modelo, repositorio, servicio y API
 postman/           colección de pruebas funcionales
 docs/img/          capturas
@@ -114,76 +107,11 @@ stateDiagram-v2
     CANCELADA --> [*]
 ```
 
-- Toda solicitud nueva empieza **ABIERTA**. Al asignarle un técnico pasa a **EN_PROCESO**.
-- No se puede pasar a EN_PROCESO sin técnico, ni saltar estados (por ejemplo, de ABIERTA a CERRADA).
-- Una solicitud CERRADA o CANCELADA ya no se modifica, y una solicitud no cambia de cliente.
-- Solo se eliminan solicitudes ABIERTAS o CANCELADAS; las atendidas quedan como historial.
-- No se asignan técnicos inactivos.
-- El email de clientes y de técnicos es único (sin distinguir mayúsculas).
-- No se elimina un cliente ni un técnico que tenga solicitudes, para no romper el historial; al técnico que deja de atender se le desactiva con `activo=false`.
-- El título y la descripción se recortan antes de validarse: `"  ab  "` no cumple el mínimo de 5 caracteres.
+- Toda solicitud empieza **ABIERTA** y pasa a **EN_PROCESO** al asignarle un técnico; no se pueden saltar estados.
+- Una solicitud CERRADA o CANCELADA ya no se modifica, y solo se eliminan las ABIERTAS o CANCELADAS.
+- El email de clientes y técnicos es único, y no se elimina a quien tenga solicitudes.
 
-### Ejemplos
-
-Registrar una solicitud:
-
-```bash
-curl -X POST http://localhost:8080/api/v1/solicitudes \
-  -H "Content-Type: application/json" \
-  -d '{"titulo":"La impresora no imprime","descripcion":"Muestra papel atascado con la bandeja vacía","prioridad":"ALTA","clienteId":1}'
-```
-
-```json
-{
-  "id": 4,
-  "titulo": "La impresora no imprime",
-  "descripcion": "Muestra papel atascado con la bandeja vacía",
-  "prioridad": "ALTA",
-  "estado": "ABIERTA",
-  "clienteId": 1,
-  "clienteNombre": "María Quispe",
-  "tecnicoId": null,
-  "tecnicoNombre": null,
-  "fechaCreacion": "2026-10-19T23:55:33.749",
-  "fechaActualizacion": "2026-10-19T23:55:33.749"
-}
-```
-
-Asignar un técnico y luego marcarla como resuelta:
-
-```bash
-curl -X PATCH http://localhost:8080/api/v1/solicitudes/4/tecnico \
-  -H "Content-Type: application/json" -d '{"tecnicoId":1}'
-
-curl -X PATCH http://localhost:8080/api/v1/solicitudes/4/estado \
-  -H "Content-Type: application/json" -d '{"estado":"RESUELTA"}'
-```
-
-### Formato de error
-
-Todos los errores tienen la misma estructura. Cuando falla una validación, `errores` trae el mensaje de cada campo:
-
-```json
-{
-  "fecha": "2026-10-19T23:55:36.055",
-  "estado": 400,
-  "error": "Bad Request",
-  "mensaje": "Hay datos inválidos en la solicitud",
-  "ruta": "/api/v1/clientes",
-  "errores": {
-    "email": "El email no tiene un formato válido",
-    "nombre": "El nombre es obligatorio",
-    "telefono": "El teléfono debe tener 9 dígitos y empezar con 9"
-  }
-}
-```
-
-| Código | Cuándo |
-|---|---|
-| 400 | Datos inválidos o JSON mal formado |
-| 404 | El recurso no existe |
-| 409 | La operación rompe una regla del negocio |
-| 500 | Error no previsto |
+Los errores responden **400** (datos inválidos), **404** (no existe) o **409** (rompe una regla del negocio).
 
 ## Pruebas con Postman
 
