@@ -113,6 +113,55 @@ stateDiagram-v2
 
 Los errores responden **400** (datos inválidos), **404** (no existe) o **409** (rompe una regla del negocio).
 
+### Ejemplos de uso
+
+Se pueden probar desde Swagger UI o Postman.
+
+**1. Registrar una solicitud**: `POST /api/v1/solicitudes`
+
+```json
+{
+  "titulo": "La impresora no imprime",
+  "descripcion": "Muestra papel atascado con la bandeja vacía",
+  "prioridad": "ALTA",
+  "clienteId": 1
+}
+```
+
+Respuesta **201 Created**: la solicitud queda `ABIERTA` y sin técnico.
+
+```json
+{
+  "id": 4,
+  "titulo": "La impresora no imprime",
+  "prioridad": "ALTA",
+  "estado": "ABIERTA",
+  "clienteId": 1,
+  "clienteNombre": "María Quispe",
+  "tecnicoId": null
+}
+```
+
+**2. Asignar un técnico**: `PATCH /api/v1/solicitudes/4/tecnico` con `{ "tecnicoId": 1 }` → **200 OK** y el estado pasa a `EN_PROCESO`.
+
+**3. Cambiar el estado**: `PATCH /api/v1/solicitudes/4/estado` con `{ "estado": "RESUELTA" }` → **200 OK**.
+
+**4. Error de regla del negocio**: pedir `{ "estado": "CERRADA" }` a una solicitud `ABIERTA` → **409 Conflict**, porque no se pueden saltar estados.
+
+**5. Error de validación**: `POST /api/v1/clientes` con el nombre vacío y un email sin `@` → **400 Bad Request** con el mensaje de cada campo:
+
+```json
+{
+  "estado": 400,
+  "error": "Bad Request",
+  "mensaje": "Hay datos inválidos en la solicitud",
+  "errores": {
+    "nombre": "El nombre es obligatorio",
+    "email": "El email no tiene un formato válido"
+  }
+}
+```
+
 ## Pruebas con Postman
 
 Importar `postman/soporte-tecnico-api.postman_collection.json` en Postman y ejecutarla con el **Runner** con la API levantada. Son 28 peticiones con 48 tests, en orden: cada petición guarda los ids que usan las siguientes.
