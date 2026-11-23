@@ -70,7 +70,7 @@ public class SolicitudController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Actualizar título, descripción y prioridad")
+    @Operation(summary = "Actualizar título, descripción, prioridad y costo")
     @ApiResponse(responseCode = "200", description = "Solicitud actualizada")
     @ApiResponse(responseCode = "400", description = "Datos inválidos")
     @ApiResponse(responseCode = "404", description = "La solicitud no existe")

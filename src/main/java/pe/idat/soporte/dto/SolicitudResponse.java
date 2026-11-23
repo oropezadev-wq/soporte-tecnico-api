@@ -3,6 +3,7 @@ package pe.idat.soporte.dto;
 import pe.idat.soporte.model.EstadoSolicitud;
 import pe.idat.soporte.model.Prioridad;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /** Solicitud con los nombres del cliente y del técnico, para no obligar a hacer otra consulta. */
@@ -12,6 +13,7 @@ public record SolicitudResponse(
         String descripcion,
         Prioridad prioridad,
         EstadoSolicitud estado,
+        BigDecimal costo,
         Long clienteId,
         String clienteNombre,
         Long tecnicoId,

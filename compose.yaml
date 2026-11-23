@@ -1,0 +1,16 @@
+# PostgreSQL 18 para desarrollo: docker compose up -d
+# Crea la base soporte_db; el esquema y las tablas los crea la aplicación al arrancar.
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: soporte_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - datos-postgres:/var/lib/postgresql
+
+volumes:
+  datos-postgres:

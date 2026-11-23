@@ -1,11 +1,15 @@
 package pe.idat.soporte.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import pe.idat.soporte.model.Prioridad;
+
+import java.math.BigDecimal;
 
 /**
  * Datos para registrar una solicitud. Al actualizar, {@code clienteId} debe coincidir
@@ -25,6 +29,11 @@ public record SolicitudRequest(
         @Schema(example = "ALTA")
         @NotNull(message = "La prioridad es obligatoria")
         Prioridad prioridad,
+
+        @Schema(example = "120.50", description = "Costo estimado en soles; opcional")
+        @DecimalMin(value = "0.00", message = "El costo no puede ser negativo")
+        @Digits(integer = 12, fraction = 2, message = "El costo admite hasta 12 enteros y 2 decimales")
+        BigDecimal costo,
 
         @Schema(example = "1")
         @NotNull(message = "El cliente es obligatorio")

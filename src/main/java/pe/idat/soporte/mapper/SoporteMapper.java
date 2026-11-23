@@ -37,11 +37,14 @@ public final class SoporteMapper {
                 t.getEspecialidad(), t.isActivo());
     }
 
-    public static SolicitudResponse aResponse(Solicitud s, Cliente cliente, Tecnico tecnico) {
+    /** Debe llamarse dentro de una transacción: lee el cliente y el técnico, que son LAZY. */
+    public static SolicitudResponse aResponse(Solicitud s) {
+        Cliente cliente = s.getCliente();
+        Tecnico tecnico = s.getTecnico();
         return new SolicitudResponse(
-                s.getId(), s.getTitulo(), s.getDescripcion(), s.getPrioridad(), s.getEstado(),
-                s.getClienteId(), cliente == null ? null : cliente.getNombre(),
-                s.getTecnicoId(), tecnico == null ? null : tecnico.getNombre(),
+                s.getId(), s.getTitulo(), s.getDescripcion(), s.getPrioridad(), s.getEstado(), s.getCosto(),
+                cliente.getId(), cliente.getNombre(),
+                tecnico == null ? null : tecnico.getId(), tecnico == null ? null : tecnico.getNombre(),
                 s.getFechaCreacion(), s.getFechaActualizacion());
     }
 }
