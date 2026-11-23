@@ -1,20 +1,16 @@
 package pe.idat.soporte.repository;
 
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import pe.idat.soporte.model.Especialidad;
 import pe.idat.soporte.model.Tecnico;
 
 import java.util.List;
 import java.util.Optional;
 
-@Repository
-public class TecnicoRepositorio extends RepositorioEnMemoria<Tecnico> {
+/** Acceso a la tabla tecnicos; la implementación la genera Spring Data JPA. */
+public interface TecnicoRepositorio extends JpaRepository<Tecnico, Long> {
 
-    public Optional<Tecnico> buscarPorEmail(String email) {
-        return filtrar(t -> t.getEmail().equalsIgnoreCase(email)).stream().findFirst();
-    }
+    Optional<Tecnico> findByEmailIgnoreCase(String email);
 
-    public List<Tecnico> listarPorEspecialidad(Especialidad especialidad) {
-        return filtrar(t -> t.getEspecialidad() == especialidad);
-    }
+    List<Tecnico> findByEspecialidadOrderByIdAsc(Especialidad especialidad);
 }

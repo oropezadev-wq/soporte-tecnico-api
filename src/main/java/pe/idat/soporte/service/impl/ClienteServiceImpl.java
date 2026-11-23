@@ -1,6 +1,8 @@
 package pe.idat.soporte.service.impl;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pe.idat.soporte.dto.ClienteRequest;
 import pe.idat.soporte.dto.ClienteResponse;
 import pe.idat.soporte.exception.RecursoNoEncontradoException;
@@ -13,7 +15,13 @@ import pe.idat.soporte.service.ClienteService;
 
 import java.util.List;
 
+/**
+ * Las operaciones que escriben corren en una transacción: si se lanza una
+ * RuntimeException (por ejemplo ReglaNegocioException), se hace rollback y no
+ * queda nada a medias en la base. Las lecturas usan readOnly = true.
+ */
 @Service
+@Transactional
 public class ClienteServiceImpl implements ClienteService {
 
     private final ClienteRepositorio clientes;
@@ -27,15 +35,17 @@ public class ClienteServiceImpl implements ClienteService {
     @Override
     public ClienteResponse registrar(ClienteRequest request) {
         validarEmailLibre(request.email(), null);
-        return SoporteMapper.aResponse(clientes.guardar(SoporteMapper.aEntidad(request)));
+        return SoporteMapper.aResponse(clientes.save(SoporteMapper.aEntidad(request)));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ClienteResponse> listar() {
-        return clientes.listar().stream().map(SoporteMapper::aResponse).toList();
+        return clientes.findAll(Sort.by("id")).stream().map(SoporteMapper::aResponse).toList();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ClienteResponse obtener(Long id) {
         return SoporteMapper.aResponse(buscar(id));
     }
@@ -45,25 +55,25 @@ public class ClienteServiceImpl implements ClienteService {
         Cliente cliente = buscar(id);
         validarEmailLibre(request.email(), id);
         cliente.actualizar(request.nombre().trim(), request.email().trim(), request.telefono(), request.empresa());
-        return SoporteMapper.aResponse(clientes.guardar(cliente));
+        return SoporteMapper.aResponse(clientes.save(cliente));
     }
 
     @Override
     public void eliminar(Long id) {
         buscar(id);
-        if (solicitudes.existenPorCliente(id)) {
+        if (solicitudes.existsByClienteId(id)) {
             throw new ReglaNegocioException("El cliente " + id + " tiene solicitudes registradas y no se puede eliminar");
         }
-        clientes.eliminarPorId(id);
+        clientes.deleteById(id);
     }
 
     private Cliente buscar(Long id) {
-        return clientes.buscarPorId(id).orElseThrow(() -> new RecursoNoEncontradoException("Cliente", id));
+        return clientes.findById(id).orElseThrow(() -> new RecursoNoEncontradoException("Cliente", id));
     }
 
     /** El email identifica al cliente: no puede repetirse, salvo en el mismo registro. */
     private void validarEmailLibre(String email, Long idActual) {
-        clientes.buscarPorEmail(email.trim())
+        clientes.findByEmailIgnoreCase(email.trim())
                 .filter(otro -> !otro.getId().equals(idActual))
                 .ifPresent(otro -> {
                     throw new ReglaNegocioException("Ya existe un cliente con el email " + email);

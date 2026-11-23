@@ -3,6 +3,8 @@ package pe.idat.soporte.exception;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -81,6 +83,20 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
     public ResponseEntity<Void> formatoNoAceptable() {
         return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
+    }
+
+    /** Otra petición modificó la misma solicitud primero (@Version distinto): se pide reintentar. */
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ResponseEntity<ErrorResponse> conflictoDeVersion(OptimisticLockingFailureException ex, HttpServletRequest req) {
+        return responder(HttpStatus.CONFLICT,
+                "El registro fue modificado por otra petición; vuelva a consultarlo e intente de nuevo", req, Map.of());
+    }
+
+    /** La base rechazó el cambio por una restricción (por ejemplo, email repetido registrado al mismo tiempo). */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> datoDuplicado(DataIntegrityViolationException ex, HttpServletRequest req) {
+        log.warn("Restricción de la base en {}: {}", req.getRequestURI(), ex.getMostSpecificCause().getMessage());
+        return responder(HttpStatus.CONFLICT, "El dato ya existe o no cumple una regla de la base de datos", req, Map.of());
     }
 
     @ExceptionHandler(NoResourceFoundException.class)

@@ -8,8 +8,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class SolicitudTest {
 
+    private final Cliente cliente = new Cliente("María", "maria@x.pe", "987654321", null);
+    private final Tecnico tecnico = new Tecnico("Luis", "luis@x.pe", "912345678", Especialidad.REDES);
+
     private Solicitud nueva() {
-        return new Solicitud("No enciende el monitor", "Pantalla negra al prender", Prioridad.MEDIA, 1L);
+        return new Solicitud("No enciende el monitor", "Pantalla negra al prender", Prioridad.MEDIA, null, cliente);
     }
 
     @Test
@@ -17,7 +20,7 @@ class SolicitudTest {
         Solicitud s = nueva();
 
         assertThat(s.getEstado()).isEqualTo(EstadoSolicitud.ABIERTA);
-        assertThat(s.getTecnicoId()).isNull();
+        assertThat(s.getTecnico()).isNull();
         assertThat(s.getFechaCreacion()).isNotNull();
     }
 
@@ -25,10 +28,10 @@ class SolicitudTest {
     void asignarTecnicoPasaAEnProceso() {
         Solicitud s = nueva();
 
-        s.asignarTecnico(7L);
+        s.asignarTecnico(tecnico);
 
         assertThat(s.getEstado()).isEqualTo(EstadoSolicitud.EN_PROCESO);
-        assertThat(s.getTecnicoId()).isEqualTo(7L);
+        assertThat(s.getTecnico()).isSameAs(tecnico);
     }
 
     @Test
@@ -52,7 +55,7 @@ class SolicitudTest {
     @Test
     void cicloCompletoHastaCerrada() {
         Solicitud s = nueva();
-        s.asignarTecnico(7L);
+        s.asignarTecnico(tecnico);
 
         s.cambiarEstado(EstadoSolicitud.RESUELTA);
         s.cambiarEstado(EstadoSolicitud.CERRADA);
@@ -64,13 +67,13 @@ class SolicitudTest {
     @Test
     void unaSolicitudCerradaNoSeModifica() {
         Solicitud s = nueva();
-        s.asignarTecnico(7L);
+        s.asignarTecnico(tecnico);
         s.cambiarEstado(EstadoSolicitud.RESUELTA);
         s.cambiarEstado(EstadoSolicitud.CERRADA);
 
-        assertThatThrownBy(() -> s.actualizar("Otro título", "Otra descripción", Prioridad.BAJA))
+        assertThatThrownBy(() -> s.actualizar("Otro título", "Otra descripción", Prioridad.BAJA, null))
                 .isInstanceOf(ReglaNegocioException.class);
-        assertThatThrownBy(() -> s.asignarTecnico(8L))
+        assertThatThrownBy(() -> s.asignarTecnico(tecnico))
                 .isInstanceOf(ReglaNegocioException.class);
     }
 }

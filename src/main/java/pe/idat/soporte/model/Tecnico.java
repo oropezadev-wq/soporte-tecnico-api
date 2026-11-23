@@ -1,9 +1,27 @@
 package pe.idat.soporte.model;
 
-/** Personal de la empresa que atiende las solicitudes. */
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+/** Personal de la empresa que atiende las solicitudes. Tabla {@code soporte.tecnicos}. */
+@Entity
+@Table(name = "tecnicos")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Tecnico extends Persona {
 
+    /** Se guarda como texto (REDES, HARDWARE...) para que la tabla se entienda sin el código. */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
     private Especialidad especialidad;
+
+    @Column(nullable = false)
     private boolean activo;
 
     public Tecnico(String nombre, String email, String telefono, Especialidad especialidad) {
@@ -17,13 +35,5 @@ public class Tecnico extends Persona {
         actualizarContacto(nombre, email, telefono);
         this.especialidad = especialidad;
         this.activo = activo;
-    }
-
-    public Especialidad getEspecialidad() {
-        return especialidad;
-    }
-
-    public boolean isActivo() {
-        return activo;
     }
 }

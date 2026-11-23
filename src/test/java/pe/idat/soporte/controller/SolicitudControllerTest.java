@@ -212,6 +212,26 @@ class SolicitudControllerTest {
     }
 
     @Test
+    void registraYDevuelveElCosto() throws Exception {
+        long clienteId = crearCliente("costo@x.pe");
+        mvc.perform(post("/api/v1/solicitudes").contentType(MediaType.APPLICATION_JSON).content("""
+                        {"titulo":"Cambio de pantalla","descripcion":"Pantalla rota","prioridad":"MEDIA",
+                         "costo":250.50,"clienteId":%d}""".formatted(clienteId)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.costo").value(250.50));
+    }
+
+    @Test
+    void costoNegativoDevuelve400() throws Exception {
+        long clienteId = crearCliente("costo.negativo@x.pe");
+        mvc.perform(post("/api/v1/solicitudes").contentType(MediaType.APPLICATION_JSON).content("""
+                        {"titulo":"Cambio de pantalla","descripcion":"Pantalla rota","prioridad":"MEDIA",
+                         "costo":-1,"clienteId":%d}""".formatted(clienteId)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errores.costo").exists());
+    }
+
+    @Test
     void swaggerPublicaLaDocumentacion() throws Exception {
         mvc.perform(get("/v3/api-docs"))
                 .andExpect(status().isOk())

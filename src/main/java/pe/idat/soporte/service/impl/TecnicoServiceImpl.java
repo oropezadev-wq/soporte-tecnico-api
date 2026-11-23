@@ -1,6 +1,8 @@
 package pe.idat.soporte.service.impl;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pe.idat.soporte.dto.TecnicoRequest;
 import pe.idat.soporte.dto.TecnicoResponse;
 import pe.idat.soporte.exception.RecursoNoEncontradoException;
@@ -14,7 +16,13 @@ import pe.idat.soporte.service.TecnicoService;
 
 import java.util.List;
 
+/**
+ * Las operaciones que escriben corren en una transacción: si se lanza una
+ * RuntimeException (por ejemplo ReglaNegocioException), se hace rollback y no
+ * queda nada a medias en la base. Las lecturas usan readOnly = true.
+ */
 @Service
+@Transactional
 public class TecnicoServiceImpl implements TecnicoService {
 
     private final TecnicoRepositorio tecnicos;
@@ -28,18 +36,20 @@ public class TecnicoServiceImpl implements TecnicoService {
     @Override
     public TecnicoResponse registrar(TecnicoRequest request) {
         validarEmailLibre(request.email(), null);
-        return SoporteMapper.aResponse(tecnicos.guardar(SoporteMapper.aEntidad(request)));
+        return SoporteMapper.aResponse(tecnicos.save(SoporteMapper.aEntidad(request)));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TecnicoResponse> listar(Especialidad especialidad) {
         List<Tecnico> resultado = especialidad == null
-                ? tecnicos.listar()
-                : tecnicos.listarPorEspecialidad(especialidad);
+                ? tecnicos.findAll(Sort.by("id"))
+                : tecnicos.findByEspecialidadOrderByIdAsc(especialidad);
         return resultado.stream().map(SoporteMapper::aResponse).toList();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TecnicoResponse obtener(Long id) {
         return SoporteMapper.aResponse(buscar(id));
     }
@@ -51,25 +61,25 @@ public class TecnicoServiceImpl implements TecnicoService {
         boolean activo = request.activo() == null ? tecnico.isActivo() : request.activo();
         tecnico.actualizar(request.nombre().trim(), request.email().trim(), request.telefono(),
                 request.especialidad(), activo);
-        return SoporteMapper.aResponse(tecnicos.guardar(tecnico));
+        return SoporteMapper.aResponse(tecnicos.save(tecnico));
     }
 
     @Override
     public void eliminar(Long id) {
         buscar(id);
-        if (solicitudes.existenPorTecnico(id)) {
+        if (solicitudes.existsByTecnicoId(id)) {
             throw new ReglaNegocioException("El técnico " + id
                     + " tiene solicitudes registradas y no se puede eliminar; desactívelo con activo=false");
         }
-        tecnicos.eliminarPorId(id);
+        tecnicos.deleteById(id);
     }
 
     private Tecnico buscar(Long id) {
-        return tecnicos.buscarPorId(id).orElseThrow(() -> new RecursoNoEncontradoException("Técnico", id));
+        return tecnicos.findById(id).orElseThrow(() -> new RecursoNoEncontradoException("Técnico", id));
     }
 
     private void validarEmailLibre(String email, Long idActual) {
-        tecnicos.buscarPorEmail(email.trim())
+        tecnicos.findByEmailIgnoreCase(email.trim())
                 .filter(otro -> !otro.getId().equals(idActual))
                 .ifPresent(otro -> {
                     throw new ReglaNegocioException("Ya existe un técnico con el email " + email);

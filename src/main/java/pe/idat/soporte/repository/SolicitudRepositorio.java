@@ -1,34 +1,52 @@
 package pe.idat.soporte.repository;
 
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import pe.idat.soporte.model.EstadoSolicitud;
 import pe.idat.soporte.model.Prioridad;
 import pe.idat.soporte.model.Solicitud;
 
 import java.util.List;
 
-@Repository
-public class SolicitudRepositorio extends RepositorioEnMemoria<Solicitud> {
+/**
+ * Acceso a la tabla solicitudes.
+ * Las búsquedas que devuelven listas usan {@code @Query} con JPQL y {@code join fetch}
+ * para traer cliente y técnico en la misma consulta (sin una consulta extra por fila).
+ * Las verificaciones simples usan consultas derivadas del nombre del método.
+ */
+public interface SolicitudRepositorio extends JpaRepository<Solicitud, Long> {
 
     /** Filtra por estado y prioridad; un parámetro nulo no filtra. */
-    public List<Solicitud> buscar(EstadoSolicitud estado, Prioridad prioridad) {
-        return filtrar(s -> (estado == null || s.getEstado() == estado)
-                && (prioridad == null || s.getPrioridad() == prioridad));
-    }
+    @Query("""
+            select s from Solicitud s
+            join fetch s.cliente
+            left join fetch s.tecnico
+            where (:estado is null or s.estado = :estado)
+              and (:prioridad is null or s.prioridad = :prioridad)
+            order by s.id
+            """)
+    List<Solicitud> buscar(@Param("estado") EstadoSolicitud estado, @Param("prioridad") Prioridad prioridad);
 
-    public List<Solicitud> listarPorCliente(Long clienteId) {
-        return filtrar(s -> s.getClienteId().equals(clienteId));
-    }
+    @Query("""
+            select s from Solicitud s
+            join fetch s.cliente
+            left join fetch s.tecnico
+            where s.cliente.id = :clienteId
+            order by s.id
+            """)
+    List<Solicitud> listarPorCliente(@Param("clienteId") Long clienteId);
 
-    public List<Solicitud> listarPorTecnico(Long tecnicoId) {
-        return filtrar(s -> tecnicoId.equals(s.getTecnicoId()));
-    }
+    @Query("""
+            select s from Solicitud s
+            join fetch s.cliente
+            join fetch s.tecnico t
+            where t.id = :tecnicoId
+            order by s.id
+            """)
+    List<Solicitud> listarPorTecnico(@Param("tecnicoId") Long tecnicoId);
 
-    public boolean existenPorCliente(Long clienteId) {
-        return !listarPorCliente(clienteId).isEmpty();
-    }
+    boolean existsByClienteId(Long clienteId);
 
-    public boolean existenPorTecnico(Long tecnicoId) {
-        return !listarPorTecnico(tecnicoId).isEmpty();
-    }
+    boolean existsByTecnicoId(Long tecnicoId);
 }
