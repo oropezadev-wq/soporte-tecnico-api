@@ -96,7 +96,7 @@ erDiagram
 
 Los scripts 02 y 03 se pueden ejecutar varias veces: solo crean lo que falta y no duplican datos. La aplicación los ejecuta sola al arrancar, y Hibernate (`ddl-auto=validate`) comprueba que las tablas coincidan con las entidades.
 
-Conceptos de JPA que usa el proyecto:
+### Persistencia con JPA
 
 - `@Entity` y `@Table` en cada entidad, `@Id` con `GenerationType.IDENTITY` y `@Column` con `nullable` y `length`.
 - `@ManyToOne` de la solicitud hacia el cliente y el técnico.
@@ -117,7 +117,7 @@ Requisitos: **JDK 21**, **IntelliJ IDEA** y **PostgreSQL 18**. Maven no hace fal
 2. Crear la base de datos, de una de estas dos formas:
    - **PostgreSQL instalado**: en pgAdmin, abrir el *Query Tool* sobre la base `postgres` y ejecutar `database/01_crear_base_de_datos.sql`.
    - **Docker**: `docker compose up -d` (levanta PostgreSQL 18 con la base `soporte_db` ya creada).
-3. Revisar la conexión en `src/main/resources/application.properties`. Por defecto usa el usuario `postgres` con clave `postgres`; si tu clave es otra, cámbiala ahí o define las variables de entorno `DB_USUARIO` y `DB_CLAVE`:
+3. Revisar la conexión en `src/main/resources/application.properties`. Por defecto usa el usuario `postgres` con clave `postgres`; si la clave es otra, se cambia ahí o con las variables de entorno `DB_USUARIO` y `DB_CLAVE`:
    ```properties
    spring.datasource.url=jdbc:postgresql://localhost:5432/soporte_db?currentSchema=soporte
    spring.datasource.username=${DB_USUARIO:postgres}
@@ -154,7 +154,7 @@ Base: `/api/v1`
 | POST | `/solicitudes` | Registrar una solicitud | 201, 400, 404 |
 | GET | `/solicitudes?estado=ABIERTA&prioridad=ALTA` | Listar solicitudes (filtros opcionales) | 200, 400 |
 | GET | `/solicitudes/{id}` | Obtener una solicitud | 200, 404 |
-| PUT | `/solicitudes/{id}` | Actualizar título, descripción y prioridad | 200, 400, 404, 409 |
+| PUT | `/solicitudes/{id}` | Actualizar título, descripción, prioridad y costo | 200, 400, 404, 409 |
 | PATCH | `/solicitudes/{id}/tecnico` | Asignar un técnico | 200, 400, 404, 409 |
 | PATCH | `/solicitudes/{id}/estado` | Cambiar el estado | 200, 400, 404, 409 |
 | DELETE | `/solicitudes/{id}` | Eliminar una solicitud ABIERTA o CANCELADA | 204, 404, 409 |
@@ -242,5 +242,5 @@ Las pruebas automáticas (`./mvnw test`) usan otra base, `soporte_test`, que deb
 | Apellidos | Nombres | Rol |
 |---|---|---|
 | Lopez Marmanillo | Abraham Sebastiam | Capa de presentación: controladores REST, validaciones de entrada y Swagger |
-| Oropeza Ávila | Wali | Líder del proyecto y capa de negocio: servicios, reglas y manejo de excepciones |
-| Pascual Cárdenas | Rony Emerzon | Capa de datos: modelo, repositorios en memoria y pruebas con Postman |
+| Oropeza Ávila | Wali Jhonatan | Líder del proyecto y capa de negocio: servicios, reglas y manejo de excepciones |
+| Pascual Cárdenas | Rony Emerzon | Capa de datos: entidades JPA, repositorios, scripts SQL y pruebas con Postman |
